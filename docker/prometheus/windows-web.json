@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [ "10.0.3.240:9273" ],
+    "labels": {
+      "instance": "WebServer",
+      "env": "Pro",
+      "type": "Windows"
+    }
+  }
+]
+

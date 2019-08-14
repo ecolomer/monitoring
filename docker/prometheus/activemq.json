@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [ "10.0.2.30:9273" ],
+    "labels": {
+      "instance": "ActiveMQ",
+      "env": "Pro",
+      "type": "Linux"
+    }
+  }
+]
+

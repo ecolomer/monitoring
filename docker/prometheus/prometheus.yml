@@ -1,0 +1,84 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+
+  - job_name: 'prometheus'
+
+    static_configs:
+    - targets: ['localhost:9090']
+
+  - job_name: 'activemq-exporter'
+
+    file_sd_configs:
+      - files: ['/etc/prometheus/activemq.json']
+
+  - job_name: 'linux-exporter'
+
+    file_sd_configs:
+      - files: ['/etc/prometheus/linux.json']
+
+  - job_name: 'windows-exporter-web'
+
+    file_sd_configs:
+      - files: ['/etc/prometheus/windows-web.json']
+
+    metric_relabel_configs:
+      - source_labels: [ 'objectname', 'counterinstance' ]
+        regex: Process;w3wp.*
+        action: replace
+        replacement: W3WorkerProcess
+        target_label: objectname
+
+      - source_labels: [ 'objectname', 'counterinstance' ]
+        regex: Process;.*
+        action: drop
+
+      - source_labels: [ '__name__', 'counterinstance' ]
+        regex: win_diskio_.+;\d+ (.*)
+        action: replace
+        replacement: $1
+        target_label: counterinstance
+
+  - job_name: 'windows-exporter-sql'
+
+    file_sd_configs:
+      - files: ['/etc/prometheus/windows-sql.json']
+
+    metric_relabel_configs:
+      - source_labels: [ 'objectname', 'counterinstance' ]
+        regex: Process;sqlservr.*
+        action: replace
+        replacement: SQLServerProcess
+        target_label: objectname
+
+      - source_labels: [ 'objectname', 'counterinstance' ]
+        regex: Process;.*
+        action: drop
+
+      - source_labels: [ '__name__', 'counterinstance' ]
+        regex: win_diskio_.+;\d+ (.*)
+        action: replace
+        replacement: $1
+        target_label: counterinstance
+
+  - job_name: 'linux-mysql'
+
+    file_sd_configs:
+      - files: ['/etc/prometheus/mysql.json']

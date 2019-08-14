@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [ "10.0.2.30:9104" ],
+    "labels": {
+      "instance": "MySQL",
+      "env": "Pro",
+      "type": "Linux"
+    }
+  }
+]
+

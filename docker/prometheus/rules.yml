@@ -1,0 +1,53 @@
+groups:
+  - name: recording_rules
+    interval: 5s
+    rules:
+      - record: node_exporter:node_filesystem_free:fs_used_percents
+        expr: 100 - 100 * ( node_filesystem_free_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} )
+
+      - record: node_exporter:node_memory_available:memory_used_percents
+        expr: 100 - 100 * (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+
+  - name: alerting_rules
+    rules:
+
+      - alert: NodeDown
+        expr: up == 0
+        labels:
+          severity: minor
+          correlate: NodeUp,NodeDown
+        annotations:
+          description: Node is down.
+
+      - alert: NodeUp
+        expr: up == 3
+        labels:
+          severity: ok
+          correlate: NodeUp,NodeDown
+        annotations:
+          description: Node is up.
+
+      - alert: LoadAverage15m
+        expr: node_load15 >= 0.75
+        labels:
+          severity: major
+        annotations:
+          summary: "Instance {{ $labels.instance }} - high load average"
+          description: "{{ $labels.instance  }} (measured by {{ $labels.job }}) has high load average ({{ $value }}) over 15 minutes."
+
+      - alert: MemoryAvailable10%
+        expr: node_exporter:node_memory_available:memory_used_percents >= 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} high memory usage"
+          description: "{{ $labels.instance }} has more than 90% of its memory used."
+
+      - alert: DiskSpace10%Free
+        expr: node_exporter:node_filesystem_free:fs_used_percents >= 90
+        labels:
+          severity: moderate
+        annotations:
+          summary: "Instance {{ $labels.instance }} is low on disk space"
+          description: "{{ $labels.instance }} has only {{ $value }}% free."

@@ -1,0 +1,59 @@
+version: "2.1"
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.11.1
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-storage:/prometheus
+    networks:
+      - monitoring
+    ports:
+      - '9090:9090'
+
+  grafana:
+    image: grafana/grafana:6.3.2
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - ./grafana:/etc/grafana
+      - grafana-storage:/var/lib/grafana
+    environment:
+      - GF_SERVER_HTTP_PORT=3000
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=grafana.domain.net
+    networks:
+      - monitoring
+    ports:
+      - '3000:3000'
+    depends_on:
+      - prometheus
+
+  alertmanager:
+    image: prom/alertmanager:v0.18.0
+    container_name: alertmanager
+    restart: unless-stopped
+    command:
+      - '--cluster.listen-address='
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    networks:
+      - monitoring
+    ports:
+      - '9093:9093'
+
+volumes:
+  prometheus-storage:
+  grafana-storage:
+
+networks:
+  monitoring:
+    name: monitoring
+    ipam:
+      config:
+        - subnet: 172.40.0.0/16
+          gateway: 172.40.0.1

@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [ "10.0.2.30:9100" ],
+    "labels": {
+      "instance": "LinuxNode",
+      "env": "Pro",
+      "type": "Linux"
+    }
+  }
+]
+

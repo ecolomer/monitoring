@@ -1,0 +1,15 @@
+[Unit]
+Description=MySQL Exporter Service
+Wants=network.target
+After=network.target
+
+[Service]
+User=mysqld_exporter
+Group=mysqld_exporter
+Environment="DATA_SOURCE_NAME=mysqld_exporter:MySecret@unix(/var/run/mysqld/mysqld.sock)/"
+Type=simple
+ExecStart=/opt/mysqld_exporter/mysqld_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
