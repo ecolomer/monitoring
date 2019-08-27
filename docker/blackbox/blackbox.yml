@@ -1,0 +1,12 @@
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: [ 200 ]
+      valid_http_versions: ["HTTP/1.1", "HTTP/2"]
+      method: 'GET'
+      fail_if_body_matches_regexp:
+        - '"STOMP":"KO"'
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: false

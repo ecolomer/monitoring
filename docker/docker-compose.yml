@@ -60,6 +60,19 @@ services:
     ports:
       - '8080:8080'
 
+  blackbox:
+    image: prom/blackbox-exporter:master
+    container_name: blackbox
+    restart: unless-stopped
+    command:
+      - '--config.file=/config/blackbox.yml'
+    volumes:
+      - ./blackbox:/config
+    networks:
+      - monitoring
+    ports:
+      - '9115:9115'
+
 volumes:
   prometheus-storage:
   grafana-storage:
