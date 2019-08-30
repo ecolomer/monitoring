@@ -1,19 +1,62 @@
 global:
-  resolve_timeout: 5m
+  # The smarthost and SMTP sender used for mail notifications.
+  smtp_smarthost: 'mail-server:25'
+  smtp_from: 'alertmanager@somewhere.net'
+  smtp_require_tls: false
 
+# The directory from which notification templates are read.
+templates:
+- '/etc/alertmanager/*.tmpl'
+
+# The root route on which each incoming alert enters.
 route:
-  group_by: ['alertname']
-  group_wait: 10s
-  group_interval: 10s
-  repeat_interval: 1h
-  receiver: 'web.hook'
-receivers:
-- name: 'web.hook'
-  webhook_configs:
-  - url: 'http://127.0.0.1:5001/'
+  # The labels by which incoming alerts are grouped together. For example,
+  # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
+  # be batched into a single group.
+  group_by: [ 'alertname', 'severity' ]
+
+  # When a new group of alerts is created by an incoming alert, wait at
+  # least 'group_wait' to send the initial notification.
+  # This way ensures that you get multiple alerts for the same group that start
+  # firing shortly after another are batched together on the first
+  # notification.
+  group_wait: 30s
+
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group.
+  group_interval: 5m
+
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them.
+  repeat_interval: 3h
+
+  # A default receiver
+  receiver: email-alerts
+
+  # All the above attributes are inherited by all child routes and can
+  # overwritten on each.
+
+  # The child route trees.
+  routes:
+  - match:
+      alertname: ^.*Down$
+    receiver: email-alerts
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+# We use this to mute any warning-level notifications if the same alert is
+# already critical.
 inhibit_rules:
-  - source_match:
-      severity: 'critical'
-    target_match:
-      severity: 'warning'
-    equal: ['alertname', 'dev', 'instance']
+- source_match:
+    severity: 'Critical'
+  target_match:
+    severity: 'Warning'
+  # Apply inhibition if the alertname is the same.
+  equal: [ 'alertname' ]
+
+receivers:
+- name: 'email-alerts'
+  email_configs:
+  - to: 'someone@somewhere.net'
+    send_resolved: true
+

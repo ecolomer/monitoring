@@ -11,35 +11,25 @@ groups:
   - name: alerting_rules
     rules:
 
-      - alert: NodeDown
+      - alert: SystemDown
         expr: up == 0
         labels:
-          severity: minor
-          correlate: NodeUp,NodeDown
+          severity: Critical
         annotations:
-          description: Node is down.
+          description: Instance is down.
 
-      - alert: NodeUp
-        expr: up == 3
+      - alert: MySQLDown
+        expr: mysql_up == 0
         labels:
-          severity: ok
-          correlate: NodeUp,NodeDown
+          severity: Critical
         annotations:
-          description: Node is up.
-
-      - alert: LoadAverage15m
-        expr: node_load15 >= 0.75
-        labels:
-          severity: major
-        annotations:
-          summary: "Instance {{ $labels.instance }} - high load average"
-          description: "{{ $labels.instance  }} (measured by {{ $labels.job }}) has high load average ({{ $value }}) over 15 minutes."
+          description: MySQL is down.
 
       - alert: MemoryAvailable10%
         expr: node_exporter:node_memory_available:memory_used_percents >= 90
         for: 5m
         labels:
-          severity: critical
+          severity: Critical
         annotations:
           summary: "Instance {{ $labels.instance }} high memory usage"
           description: "{{ $labels.instance }} has more than 90% of its memory used."
@@ -47,7 +37,7 @@ groups:
       - alert: DiskSpace10%Free
         expr: node_exporter:node_filesystem_free:fs_used_percents >= 90
         labels:
-          severity: moderate
+          severity: Warning
         annotations:
           summary: "Instance {{ $labels.instance }} is low on disk space"
           description: "{{ $labels.instance }} has only {{ $value }}% free."
